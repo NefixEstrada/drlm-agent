@@ -15,7 +15,7 @@
 
 package main
 
-import "drlm-agent/cmd"
+import "github.com/brainupdaters/drlm-agent/cmd"
 
 func main() {
 	cmd.Execute()
