@@ -1,0 +1,14 @@
+# drln-agent configuration file
+
+[logging]
+#############################################################################
+# level = trace ("Something very low level.")                               #
+#         debug ("Useful debugging information.")                           #
+#         info  ("Something noteworthy happened!")                          #
+#         warn  ("You should probably take a look at this.")                #
+#         error ("Something failed but I'm not quitting.")                  #
+#         fatal ("Bye.")             --> Calls os.Exit(1) after logging     #
+#         panic ("I'm bailing.")     --> Calls panic() after logging        #
+#############################################################################
+level = "trace"
+file = "./drlm-agent.log"

@@ -32,7 +32,7 @@ func InitConfig(c string) {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".drlm-core" (without extension).
+		// Search config in home directory with name ".drlm-agent" (without extension).
 		viper.AddConfigPath(home)
 		viper.AddConfigPath(".")
 		viper.SetConfigName(".drlm-agent")
