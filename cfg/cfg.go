@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
 package cfg
 
 import (
@@ -17,8 +19,9 @@ var Config *DRLMAgentConfig
 
 // DRLMAgentConfig is the configuration of an Agent of DRLM
 type DRLMAgentConfig struct {
-	Core DRLMAgentCoreConfig `mapstructure:"core"`
-	Log  logger.Config       `mapstructure:"log"`
+	Core  DRLMAgentCoreConfig  `mapstructure:"core"`
+	Minio DRLMAgentMinioConfig `mapstructure:"minio"`
+	Log   logger.Config        `mapstructure:"log"`
 }
 
 // DRLMAgentCoreConfig is the configuration related with the DRLM Core of an Agent of DRLM
@@ -27,6 +30,17 @@ type DRLMAgentCoreConfig struct {
 	Port     int    `mapstructure:"port"`
 	TLS      bool   `mapstructure:"tls"`
 	CertPath string `mapstructure:"cert_path"`
+	Secret   string `mapstructure:"secret"`
+}
+
+// DRLMAgentMinioConfig is the configuration related wtih the Minio of a DRLM Agent
+type DRLMAgentMinioConfig struct {
+	Host      string `mapstructure:"host"`
+	Port      int    `mapstructure:"port"`
+	SSL       bool   `mapstructure:"ssl"`
+	CertPath  string `mapstructure:"cert_path"`
+	AccessKey string `mapstructure:"access_key"`
+	SecretKey string `mapstructure:"secret_key"`
 }
 
 // v is the viper instance for the configuration
@@ -85,6 +99,7 @@ func SetDefaults() {
 		"port":      50051,
 		"tls":       true,
 		"cert_path": "cert/server.crt",
+		"secret":    "secret",
 	})
 
 	v.SetDefault("log", map[string]interface{}{

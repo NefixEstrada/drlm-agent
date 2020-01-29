@@ -1,19 +1,21 @@
 module github.com/brainupdaters/drlm-agent
 
+// TODO: Remove this when https://github.com/kahing/goofys/pull/462 gets merged
+replace github.com/kahing/goofys => github.com/nefixestrada/goofys v0.0.0-20200129082319-8f9a979f4315
+
+replace github.com/jacobsa/fuse => github.com/kahing/fusego v0.0.0-20191210234239-374cf4208103
+
 require (
-	github.com/brainupdaters/drlm-common v0.0.0-20191004105537-f74188920bb4
+	github.com/brainupdaters/drlm-common v0.0.0-20200127123945-18d8b3139fff
 	github.com/fsnotify/fsnotify v1.4.7
-	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/pelletier/go-toml v1.5.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.2
-	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0
 	github.com/stretchr/testify v1.4.0
-	golang.org/x/sys v0.0.0-20191007084522-4ac5d0cebf12 // indirect
-	golang.org/x/text v0.3.2 // indirect
-	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
+	golang.org/x/sys v0.0.0-20200124204421-9fbb57f87de9 // indirect
+	google.golang.org/grpc v1.24.0
 )
+
+go 1.13

@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
 package main
 
-import "fmt"
+import "github.com/brainupdaters/drlm-agent/cmd"
 
 func main() {
-	fmt.Println("Hello, world!")
+	cmd.Execute()
 }
