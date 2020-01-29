@@ -101,7 +101,14 @@ func SetDefaults() {
 		"cert_path": "cert/server.crt",
 		"secret":    "secret",
 	})
-
+	v.SetDefault("minio", map[string]interface{}{
+		"host":       "minio",
+		"port":       9443,
+		"ssl":        true,
+		"cert_path":  "cert/minio.crt",
+		"access_key": "drlm3minio",
+		"secret_key": "drlm3minio",
+	})
 	v.SetDefault("log", map[string]interface{}{
 		"level": "info",
 		"file":  filepath.Join(home, ".log/drlm/agent.log"),
