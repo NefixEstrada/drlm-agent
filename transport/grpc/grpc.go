@@ -5,6 +5,7 @@ package grpc
 import (
 	"context"
 
+	"github.com/brainupdaters/drlm-agent/binary"
 	"github.com/brainupdaters/drlm-agent/cfg"
 	"github.com/brainupdaters/drlm-agent/job"
 	"github.com/brainupdaters/drlm-agent/models"
@@ -12,6 +13,7 @@ import (
 	"github.com/brainupdaters/drlm-common/pkg/core"
 	drlm "github.com/brainupdaters/drlm-common/pkg/proto"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -21,14 +23,56 @@ const API string = "v1.0.0"
 var agentConn drlm.DRLM_AgentConnectionClient
 
 // Init initializes the DRLM Core client
-func Init(ctx context.Context) {
-	client, conn := core.NewClient(cfg.Config.Core.TLS, cfg.Config.Core.CertPath, cfg.Config.Core.Host, cfg.Config.Core.Port)
+func Init(ctx context.Context, fs afero.Fs, join bool) {
+	client, conn := core.NewClient(fs, cfg.Config.Core.TLS, cfg.Config.Core.CertPath, cfg.Config.Core.Host, cfg.Config.Core.Port)
 
 	var err error
 	agentConn, err = client.AgentConnection(prepareCtx(ctx))
 	if err != nil {
 		// TODO: RETRY
 		log.Fatalf("error connecting to the core: %v", err)
+	}
+
+	if join {
+		if err := agentConn.Send(&drlm.AgentConnectionFromAgent{
+			MessageType: drlm.AgentConnectionFromAgent_MESSAGE_TYPE_JOIN_REQUEST,
+			JoinRequest: &drlm.AgentConnectionFromAgent_JoinRequest{
+				// TODO: Get the actual things
+				Arch: drlm.Arch_ARCH_UNKNOWN,
+				Os:   drlm.OS_OS_UNKNOWN,
+			},
+		}); err != nil {
+			log.Fatalf("error requesting to join to DRLM Core: %v", err)
+		}
+
+		req, err := agentConn.Recv()
+		if err != nil {
+			log.Fatalf("error recieving the join response: %v", err)
+		}
+
+		switch req.MessageType {
+		case drlm.AgentConnectionFromCore_MESSAGE_TYPE_JOIN_RESPONSE:
+			if req.JoinResponse.Status != drlm.AgentConnectionFromCore_JoinResponse_STATUS_ACCEPT {
+				log.Fatalf("core rejected the join request")
+			}
+
+			cfg.Config.Core.Secret = req.JoinResponse.CoreSecret
+			cfg.Config.Minio.AccessKey = req.JoinResponse.MinioAccessKey
+			cfg.Config.Minio.SecretKey = req.JoinResponse.MinioSecretKey
+
+			log.Println("config saved!")
+
+			// TODO: Save configuration!
+
+		default:
+			log.Fatalf("unknown core response when waiting for the join response: %s", req.MessageType.String())
+		}
+
+		agentConn, err = client.AgentConnection(prepareCtx(ctx))
+		if err != nil {
+			// TODO: RETRY
+			log.Fatalf("error connecting to the core: %v", err)
+		}
 	}
 
 	if err := agentConn.Send(&drlm.AgentConnectionFromAgent{
@@ -53,6 +97,12 @@ func Init(ctx context.Context) {
 
 			case drlm.AgentConnectionFromCore_MESSAGE_TYPE_JOB_CANCEL:
 				job.Cancel(req.JobCancel.Id)
+
+			case drlm.AgentConnectionFromCore_MESSAGE_TYPE_INSTALL_BINARY:
+				if err := binary.Install(req.InstallBinary.Bucket, req.InstallBinary.Name); err != nil {
+					// TODO: Send a response back
+					log.Errorf("error installing the binary: %v", err)
+				}
 
 			default:
 				log.Errorf("unknown message type recieved from the DRLM Core: %s", req.MessageType.String())

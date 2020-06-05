@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/brainupdaters/drlm-common/pkg/fs"
 	logger "github.com/brainupdaters/drlm-common/pkg/log"
 	"github.com/fsnotify/fsnotify"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
@@ -47,9 +47,9 @@ type DRLMAgentMinioConfig struct {
 var v *viper.Viper
 
 // Init prepares the configuration and reads it
-func Init(f string) {
+func Init(fs afero.Fs, f string) {
 	v = viper.New()
-	v.SetFs(fs.FS)
+	v.SetFs(fs)
 	SetDefaults()
 
 	// If provided, use the configuration file
@@ -57,12 +57,22 @@ func Init(f string) {
 		v.SetConfigFile(f)
 	}
 
+	cfgNotFound := false
 	if err := v.ReadInConfig(); err != nil {
-		log.Fatalf("error reading the configuration: %v", err)
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			log.Fatalf("error reading the configuration: %v", err)
+		}
+
+		log.Warnln("configuration file not found, using default and environment vaules")
+		cfgNotFound = true
 	}
 
 	if err := v.Unmarshal(&Config); err != nil {
 		log.Fatalf("error decoding the configuration: %v", err)
+	}
+
+	if cfgNotFound {
+		return
 	}
 
 	v.WatchConfig()
@@ -79,6 +89,7 @@ func Init(f string) {
 
 		log.Info("configuration reloaded successfully")
 	})
+
 }
 
 // SetDefaults sets the default configurations for Viper
@@ -114,7 +125,7 @@ func SetDefaults() {
 		"file":  filepath.Join(home, ".log/drlm/agent.log"),
 	})
 
-	v.SetEnvPrefix("DRLMAGENT")
+	v.SetEnvPrefix("DRLM_AGENT")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 }

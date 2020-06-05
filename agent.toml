@@ -1,0 +1,7 @@
+[core]
+host = "godev"
+cert_path = "/tls/godev/godev.crt"
+
+[minio]
+port = 9443
+cert_path = "/tls/minio/public.crt"

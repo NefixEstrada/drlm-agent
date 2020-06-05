@@ -10,18 +10,19 @@ import (
 	"sync"
 
 	"github.com/brainupdaters/drlm-agent/transport/grpc"
+	"github.com/spf13/afero"
 
 	log "github.com/sirupsen/logrus"
 )
 
 // Main is the main function of DRLM Agent
-func Main() {
+func Main(fs afero.Fs, join bool) {
 	var wg sync.WaitGroup
 
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = context.WithValue(ctx, "wg", &wg)
 
-	go grpc.Init(ctx)
+	go grpc.Init(ctx, fs, join)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
